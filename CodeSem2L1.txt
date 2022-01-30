@@ -1,0 +1,14 @@
+int b = 3;
+const int r = 55;
+
+long long ff()
+{
+	long long bb = 123214213;
+	return 9999999999999999;
+}
+
+int main()
+{
+	int p = 3;
+	return p;
+}

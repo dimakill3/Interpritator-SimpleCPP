@@ -1,0 +1,26 @@
+int hh = 3;
+
+short func()
+{
+	int t = 5;
+	long long abc, gg, text;
+	return 1;
+}
+
+int h()
+{
+	const int a = 22;
+	long art = 0x15;
+	{
+		short sh, hhh;
+		{
+			long long l;
+		}
+	}
+	{
+		long long p;
+	}
+	return a;
+}
+
+int hhh;
