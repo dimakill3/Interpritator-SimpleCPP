@@ -182,12 +182,6 @@ void Tree::SemSetConst(Tree *addr, bool flag)
 	addr->n->var.constFlag = flag;
 }
 
-// ”становить данные
-void Tree::SemSetData(Tree *addr, char* data)
-{
-	addr->n->var.data = data;
-}
-
 // ”становить флаг инициализации
 void Tree::SemSetInit(Tree* addr, bool flag)
 {
@@ -206,6 +200,33 @@ void Tree::SemSetValue(Tree* addr, DATA_TYPE dataType, TypeLex val)
 void Tree::SemSetValue(Tree* addr, DataValue val)
 {
 	addr->n->dataValue = val;
+}
+
+void Tree::SemSetValue(Tree* addr, TData* val)
+{
+	addr->n->dataType = val->dataType;
+	addr->n->dataValue = val->dataValue;
+}
+
+void Tree::SemGetData(Tree* addr, TData* data)
+{
+	data->dataType = addr->n->dataType;
+	data->dataValue = addr->n->dataValue;
+}
+
+void Tree::SemReadStringValue(TypeLex val, TData* data)
+{
+	long long value = atoll(val);
+	if (isInt(value))
+	{
+		data->dataValue.intValue = (int) value;
+		data->dataType = TYPE_INTEGER;
+	}
+	else if (isLongLong(value))
+	{
+		data->dataValue.llValue = value;
+		data->dataType = TYPE_LONG_LONG;
+	}
 }
 
 
@@ -346,6 +367,15 @@ void Tree::Print()
 	if (l != NULL) l->Print();
 }
 
+void Tree::PrintWithTag(std::string tag)
+{
+	printf("\n==========================================================\n");
+	printf("%s\n", tag.c_str());
+	printf("==========================================================\n");
+	
+	Print();
+}
+
 // ƒобавление в семантическое дерево составного оператора (пустой узел слева, от него пустой узел справа)
 Tree* Tree::CoplexOperator()
 {
@@ -367,4 +397,35 @@ Tree* Tree::CoplexOperator()
 	cur->SetRight(&b);
 	cur = cur->r; // ѕока мы не выйдем из составного оператора, будем работать от правого узла
 	return v;
+}
+
+void Tree::DelSubTree(Tree* addr)
+{
+	if (addr->r != NULL)
+		DelSubTree(addr->r);
+
+	if (addr->l != NULL)
+		DelSubTree(addr->l);
+
+	delete addr;
+}
+
+void Tree::DelSubTreeForFunc(Tree* addr)
+{
+	DelSubTree(addr->r);
+
+	addr->r = NULL;
+}
+
+Tree* Tree::DelSubTreeForBlock(Tree* addr)
+{
+	DelSubTree(addr->r);
+
+	Tree* ret = addr->up;
+	
+	delete addr;
+
+	ret->l = NULL;
+	
+	return ret;
 }

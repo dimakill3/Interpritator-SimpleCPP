@@ -1,0 +1,12 @@
+int b = 5;
+
+const int t = 4;
+
+int main()
+{
+	int g = b;
+
+	long long ll = 998998998998998;
+
+	return 45;
+}

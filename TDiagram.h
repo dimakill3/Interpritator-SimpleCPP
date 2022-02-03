@@ -19,22 +19,22 @@ private:
 	void TConstData();		// Именованные константы
 	void TVariableData();	// Переменные
 	DATA_TYPE TType();		// Тип
-	TData TFuncBody();		// Тело функции
+	void TFuncBody(TData* data);		// Тело функции
 	void TOperators();		// Операторы
-	void TOperator();		// Оператор
-	TData TFuncRet();		// Возврат из функции
+	void TOperator(bool inFor = false);		// Оператор
+	void TFuncRet(TData* data);		// Возврат из функции
 	DATA_TYPE TFuncStart();		// Вызов функции
 	void TConstList();		// Список именованных констант
 	void TVariableList();	// Список переменных
 	void TAssignSD(bool);	// Присваивание
 	void TForSD();			// Цикл for
-	DATA_TYPE TExpr();		// Выражение
-	DATA_TYPE TCompareEl();	// Элемент сравнения
-	DATA_TYPE TAddEl();		// Слогаемое
-	DATA_TYPE TMulEl();		// Множитель
-	DATA_TYPE TPrefEl();	// Элемент префиксной операции
-	DATA_TYPE TPostEl();	// Элемент постфиксной операции
-	DATA_TYPE TElementExpr();		// Элементарное выражение
+	void TExpr(TData* data);		// Выражение
+	void TCompareEl(TData* data);	// Элемент сравнения
+	void TAddEl(TData* data);		// Слогаемое
+	void TMulEl(TData* data);		// Множитель
+	void TPrefEl(TData* data);	// Элемент префиксной операции
+	void TPostEl(TData* data);	// Элемент постфиксной операции
+	void TElementExpr(TData* data);		// Элементарное выражение
 
 	int lookForvard(int k);	// Посмотреть тип k-ой лексемы спереди
 

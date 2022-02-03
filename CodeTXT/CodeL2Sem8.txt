@@ -1,0 +1,36 @@
+int b = 123;
+
+const long long c = 5;
+
+int func()
+{
+	int ff = 321;
+	{
+		long long t = c;
+		int k = ff;
+	}
+
+	for (int i = 2; i < 3; i++)
+	{
+		int j = 666;
+
+		{
+			int a;
+		}
+
+		int m;
+	}
+
+	int g;
+
+	return 55;
+}
+
+int main()
+{
+	int a = 9182;
+
+	return 1;
+}
+
+int jj = 88;
