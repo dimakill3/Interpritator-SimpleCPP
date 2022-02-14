@@ -334,14 +334,20 @@ void TDiagram::TAssignSD(bool checkSem)
 	if (type != TIdent) sc->PrintError(syntaxError, const_cast < char*>("Ожидался идентификатор"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
 	memcpy(ident, lex, sizeof(lex));
+
+	Tree* v;
+	
 	// !!!Semantic!!! //
 	if (checkSem)
 	{
 		Root->CheckConst(lex);
-	}			
-
-	// Добавляем переменную в дерево
-	Tree *v = Root->SemInclude(lex, TYPE_VAR, dataType);
+		v = Root->SemGetVar(lex);
+	}
+	else 
+	{
+		// Добавляем переменную в дерево
+		v = Root->SemInclude(lex, TYPE_VAR, dataType);
+	}
 	
 	type = sc->Scaner(lex);
 	if (type != TAssign) sc->PrintError(syntaxError, const_cast < char*>("Ожидался знак ="), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
@@ -514,7 +520,8 @@ void TDiagram::TExpr(TData* data)
 		sc->Scaner(lex);
 		TData* compareData = new TData();
 		TCompareEl(compareData);
-		// dt = max(dt1, dt);
+		
+		Root->SemDoBiOperation(data, compareData, type);
 		type = lookForvard(1);
 	}
 }
@@ -532,7 +539,8 @@ void TDiagram::TCompareEl(TData* data)
 		sc->Scaner(lex);
 		TData* addData = new TData();
 		TAddEl(addData);
-		//dt = max(dt1, dt);
+		
+		Root->SemDoBiOperation(data, addData, type);
 		type = lookForvard(1);
 	}
 }
@@ -550,7 +558,8 @@ void TDiagram::TAddEl(TData* data)
 		sc->Scaner(lex);
 		TData* mulData = new TData();
 		TMulEl(mulData);
-		//dt = max(dt1, dt);
+
+		Root->SemDoBiOperation(data, mulData, type);
 		type = lookForvard(1);
 	}
 }
@@ -568,7 +577,8 @@ void TDiagram::TMulEl(TData* data)
 		sc->Scaner(lex);
 		TData* prefData = new TData();
 		TPrefEl(prefData);
-		//dt = max(dt1, dt);
+		
+		Root->SemDoBiOperation(data, prefData, type);
 		type = lookForvard(1);
 	}
 }
@@ -583,6 +593,8 @@ void TDiagram::TPrefEl(TData* data)
 	{
 		sc->Scaner(lex);
 		isPref = true;
+
+		Root->SemDoUnoOperation(data, type);
 	}
 
 	TPostEl(data);
@@ -599,6 +611,8 @@ void TDiagram::TPostEl(TData* data)
 	if ((type == TInc) || (type == TDec))
 	{
 		Root->SemCheckFuncOrConst(lastIdentInExpr);
+		Root->SemDoUnoOperation(data, type);
+		
 		sc->Scaner(lex);
 	}
 }

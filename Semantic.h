@@ -7,6 +7,7 @@
 #pragma once
 
 #define maxInt 2147483647
+#define maxLongLong ((long long)9223372036854775807)
 
 // Типы данных
 enum DATA_TYPE {
@@ -51,6 +52,23 @@ public:
 		dataType = TYPE_INTEGER;
 		dataValue.intValue = -maxInt - 1;
 	}
+
+	std::string GetValue()
+	{
+		switch (dataType)
+		{
+		case TYPE_INTEGER:
+			{
+			return  std::to_string(dataValue.intValue);
+			}
+		case TYPE_LONG_LONG:
+			{
+			return  std::to_string(dataValue.llValue);
+			}
+		default: return "";
+		}
+	}
+	
 };
 
 // Структура данных узла (переменной или функции) в семантическом дереве
@@ -118,10 +136,14 @@ public:
 	void SemSetValue(Tree* addr, DATA_TYPE dataType, TypeLex val);	// Установить значение
 	void SemSetValue(Tree* addr, DataValue val);	// Установить значение
 	void SemSetValue(Tree* addr, TData* val);	// Установить значение
+	void SemSetValue(TypeLex a, TData* val);		// Установить значение
 	void SemReadStringValue(TypeLex val, TData* data);	// Преобразование строкового значения
 	void SemGetData(Tree* addr, TData* data);	// Получить значение узла
 	Tree* CoplexOperator();		// Добавить в дерево составной оператор
 
+	void SemDoBiOperation(TData* val1, TData* val2, int type);	// 
+	void SemDoUnoOperation(TData* val, int type);	// 
+	
 	DATA_TYPE GetType(TypeLex l);	// Узнать тип константы
 	void SemTypeCastCheck(TypeLex a, TypeLex l);	// Проверка возможности приведения типа
 	void SemTypeCastCheck(TypeLex a, DATA_TYPE dt);	// Проверка возможности приведения типа

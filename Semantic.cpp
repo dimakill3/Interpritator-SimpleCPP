@@ -1,6 +1,7 @@
 #include "Semantic.h"
 #include "vector"
 #include <string.h>
+
 #define max(a,b) a<b? b : a
 
 //#define maxShort ((short)32767)
@@ -12,7 +13,6 @@
 #define isInt(num) (num >= -maxInt - 1 && num <= maxInt)
 //#define isLong(num) (num >= -maxLong - 1 && num <= maxLong)
 #define isLongLong(num) (num >= -maxLongLong - 1 && num <= maxLongLong)
-
 
 Tree* Tree::cur = (Tree*)NULL;
 
@@ -191,7 +191,7 @@ void Tree::SemSetInit(Tree* addr, bool flag)
 void Tree::SemSetValue(Tree* addr, DATA_TYPE dataType, TypeLex val)
 {
 	if (dataType == TYPE_INTEGER)
-		addr->n->dataValue.intValue = atoi(val);
+		addr->n->dataValue.intValue = atoll(val);
 	
 	if (dataType == TYPE_LONG_LONG)
 		addr->n->dataValue.llValue = atoll(val);
@@ -204,8 +204,50 @@ void Tree::SemSetValue(Tree* addr, DataValue val)
 
 void Tree::SemSetValue(Tree* addr, TData* val)
 {
-	addr->n->dataType = val->dataType;
-	addr->n->dataValue = val->dataValue;
+	DATA_TYPE maxType = max(addr->n->dataType, val->dataType);
+
+	addr->n->dataType = maxType;
+	
+	switch (val->dataType)
+	{
+	case TYPE_INTEGER:
+		{
+			switch (maxType)
+			{
+			case TYPE_INTEGER:
+				{
+					addr->n->dataValue.intValue = val->dataValue.intValue;
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					addr->n->dataValue.llValue = val->dataValue.intValue;
+					break;
+				}
+			default: break;
+			}
+			break;
+		}
+	case TYPE_LONG_LONG:
+		{
+			switch (maxType)
+			{
+			case TYPE_INTEGER:
+				{
+					addr->n->dataValue.intValue = val->dataValue.llValue;
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					addr->n->dataValue.llValue = val->dataValue.llValue;
+					break;
+				}
+			default: break;
+			}
+			break;
+		}
+	default: break;
+	}
 }
 
 void Tree::SemGetData(Tree* addr, TData* data)
@@ -229,6 +271,389 @@ void Tree::SemReadStringValue(TypeLex val, TData* data)
 	}
 }
 
+void Tree::SemDoBiOperation(TData* val1, TData* val2, int type)
+{
+	DATA_TYPE maxType = max(val1->dataType, val2->dataType);
+
+	std::string value1 = val1->GetValue(), value2 = val2->GetValue();
+
+	val1->dataType = maxType;
+	
+	DataValue realValue1, realValue2;
+	
+	switch (maxType)
+	{
+	case TYPE_INTEGER:
+		{
+			realValue1.intValue = atoll(value1.c_str());
+			realValue2.intValue = atoll(value2.c_str());
+			break;
+		}
+	case TYPE_LONG_LONG:
+		{
+			realValue1.llValue = atoll(value1.c_str());
+			realValue2.llValue = atoll(value2.c_str());
+			break;
+		}
+	default: break;
+	}
+	
+	switch (type)
+	{
+	case TEqual:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue == realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue == realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+	break;
+	}
+	case TNotEqual:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue != realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue != realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+	case TLess:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue < realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue < realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+	case TMore:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue > realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue > realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+	case TLessOrEqual:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue <= realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue <= realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+	case TMoreOrEqual:
+	{
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				if (realValue1.intValue >= realValue2.intValue)
+					val1->dataValue.intValue = 1;
+				else
+					val1->dataValue.intValue = 0;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				if (realValue1.llValue >= realValue2.llValue)
+					val1->dataValue.llValue = 1;
+				else
+					val1->dataValue.llValue = 0;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+	case TAdd:
+		{
+			switch (maxType)
+			{
+			case TYPE_INTEGER:
+				{
+					long long tmp = long long (realValue1.intValue) + long long(realValue2.intValue);
+					if (!isInt(tmp))
+					{
+						val1->dataValue.llValue = tmp;
+						val1->dataType = TYPE_LONG_LONG;
+					}
+					else
+					{
+						val1->dataValue.intValue = realValue1.intValue + realValue2.intValue;
+					}
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					val1->dataValue.llValue = realValue1.llValue + realValue2.llValue;
+					break;
+				}
+			default: break;
+			}
+			break;
+		}
+	case TSub:
+		{
+			switch (maxType)
+			{
+			case TYPE_INTEGER:
+				{
+					long long tmp = long long(realValue1.intValue) - long long(realValue2.intValue);
+					if (!isInt(tmp))
+					{
+						val1->dataValue.llValue = tmp;
+						val1->dataType = TYPE_LONG_LONG;
+					}
+					else
+					{
+						val1->dataValue.intValue = realValue1.intValue - realValue2.intValue;
+					}
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					val1->dataValue.llValue = realValue1.llValue - realValue2.llValue;
+					break;
+				}
+			default: break;
+			}
+			break;
+		}
+	case TMul:
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				long long tmp = long long(realValue1.intValue) * long long(realValue2.intValue);
+				if (!isInt(tmp))
+				{
+					val1->dataValue.llValue = tmp;
+					val1->dataType = TYPE_LONG_LONG;
+				}
+				else
+				{
+					val1->dataValue.intValue = realValue1.intValue * realValue2.intValue;
+				}
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				val1->dataValue.llValue = realValue1.llValue * realValue2.llValue;
+				break;
+			}
+		default: break;
+		}
+		break;
+	case TDiv:
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				long long tmp = long long(realValue1.intValue) / long long(realValue2.intValue);
+				if (!isInt(tmp))
+				{
+					val1->dataValue.llValue = tmp;
+					val1->dataType = TYPE_LONG_LONG;
+				}
+				else
+				{
+					val1->dataValue.intValue = realValue1.intValue / realValue2.intValue;
+				}
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				val1->dataValue.llValue = realValue1.llValue / realValue2.llValue;
+				break;
+			}
+		default: break;
+		}
+		break;
+	case TDivPart:
+		switch (maxType)
+		{
+		case TYPE_INTEGER:
+			{
+				long long tmp = long long(realValue1.intValue) % long long(realValue2.intValue);
+				if (!isInt(tmp))
+				{
+					val1->dataValue.llValue = tmp;
+					val1->dataType = TYPE_LONG_LONG;
+				}
+				else
+				{
+					val1->dataValue.intValue = realValue1.intValue % realValue2.intValue;
+				}
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				val1->dataValue.llValue = realValue1.llValue % realValue2.llValue;
+				break;
+			}
+		default: break;
+		}
+		break;
+	}
+}
+
+void Tree::SemDoUnoOperation(TData* val, int type)
+{
+	switch (type)
+	{
+	case TAdd:
+		{
+			//switch (val->dataType)
+			//{
+			//case TYPE_INTEGER:
+			//	{
+			//		val->dataValue.intValue = val->dataValue.intValue;
+			//		break;
+			//	}
+			//case TYPE_LONG_LONG:
+			//	{
+			//		val->dataValue.llValue = val->dataValue.llValue;
+			//		break;
+			//	}
+			//default: break;
+			//}
+			break;
+		}
+	case TSub:
+		{
+			switch (val->dataType)
+			{
+			case TYPE_INTEGER:
+				{
+					val->dataValue.intValue = -val->dataValue.intValue;
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					val->dataValue.llValue = -val->dataValue.llValue;
+					break;
+				}
+			default: break;
+			}
+		break;
+		}
+	case TInc:
+		{
+			switch (val->dataType)
+			{
+			case TYPE_INTEGER:
+				{
+					val->dataValue.intValue++;
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					val->dataValue.llValue++;
+					break;
+				}
+			default: break;
+			}
+		break;
+		}
+	case TDec:
+		{
+			switch (val->dataType)
+			{
+			case TYPE_INTEGER:
+				{
+					val->dataValue.intValue--;
+					break;
+				}
+			case TYPE_LONG_LONG:
+				{
+					val->dataValue.llValue--;
+					break;
+				}
+			default: break;
+			}
+		break;
+		}
+	}
+}
 
 // Проверка идентификатора а на повторное описание внутри блока.
 // Поиск осуществляется вверх от вершины addr.
@@ -304,9 +729,8 @@ void Tree::SemTypeCastCheck(TypeLex a, TypeLex l)
 	
 	if (v->n->dataType < constDataType)
 	{
-		printf("Semantic error (строка %d): Невозможно привести тип %s к %s, идентификатор %s", sc->GetLine() + 1,
+		printf("Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s", sc->GetLine() + 1,
 			types[constDataType].c_str(), types[v->n->dataType].c_str(), a);
-		exit(-2);
 	}
 	
 }
@@ -318,9 +742,8 @@ void Tree::SemTypeCastCheck(TypeLex a, DATA_TYPE dt)
 
 	if (v->n->dataType < dt)
 	{
-		printf("Semantic error (строка %d): Невозможно привести тип %s к %s, идентификатор %s", sc->GetLine() + 1,
+		printf("Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s", sc->GetLine() + 1,
 			types[dt].c_str(), types[v->n->dataType].c_str(), a);
-		exit(-2);
 	}
 }
 
@@ -329,9 +752,8 @@ void Tree::SemTypeCastCheck(DATA_TYPE dt1, DATA_TYPE dt2)
 {
 	if (dt1 < dt2)
 	{
-		printf("Semantic error (строка %d): Невозможно вернуть тип %s, ожидался тип %s", sc->GetLine() + 1,
+		printf("Semantic warning (строка %d): Неявное приведение типов тип %s, ожидался тип %s", sc->GetLine() + 1,
 			types[dt2].c_str(), types[dt1].c_str());
-		exit(-2);
 	}
 }
 

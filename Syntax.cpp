@@ -4,16 +4,24 @@
 #include <iostream>
 #include "Semantic.h"
 
-
 int main(int argc, char* argv[])
 {
+	short int sa = 1000;
+
+	int b = sa * sa * sa;
+
+	
 	setlocale(LC_ALL, "Russian");
 	
 	TScaner* sc;
+
+	TData* hh = new TData();
+
+	hh->dataValue.intValue = 1;
 	
 	// ввести файл с исходным модулем:
 	if (argc <= 1) 
-		sc = new TScaner(const_cast<char*>("CodeTXT/CodeL2Sem8.txt"));// файл по умолчанию
+		sc = new TScaner(const_cast<char*>("CodeTXT/test.txt"));// файл по умолчанию
 	else 
 		sc = new TScaner(argv[1]); // задан файл
 	
@@ -43,7 +51,7 @@ int main(int argc, char* argv[])
 		sc->PrintError(const_cast<char*>("Syntax"), const_cast<char*>("Лишний текст в конце программы."), const_cast<char*>(""), -1, -1);
 
 	// Выводим семантическое дерево
-	// myRoot->Print();
+	myRoot->Print();
 	
 	return 0;
 }
