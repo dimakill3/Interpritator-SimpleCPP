@@ -6,9 +6,9 @@
 
 int main(int argc, char* argv[])
 {
-	short int sa = 1000;
+	int a = 5;
 
-	int b = sa * sa * sa;
+	int b = a++ + 3;
 
 	
 	setlocale(LC_ALL, "Russian");

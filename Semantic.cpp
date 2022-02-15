@@ -204,15 +204,11 @@ void Tree::SemSetValue(Tree* addr, DataValue val)
 
 void Tree::SemSetValue(Tree* addr, TData* val)
 {
-	DATA_TYPE maxType = max(addr->n->dataType, val->dataType);
-
-	addr->n->dataType = maxType;
-	
 	switch (val->dataType)
 	{
 	case TYPE_INTEGER:
 		{
-			switch (maxType)
+			switch (addr->n->dataType)
 			{
 			case TYPE_INTEGER:
 				{
@@ -230,7 +226,7 @@ void Tree::SemSetValue(Tree* addr, TData* val)
 		}
 	case TYPE_LONG_LONG:
 		{
-			switch (maxType)
+			switch (addr->n->dataType)
 			{
 			case TYPE_INTEGER:
 				{

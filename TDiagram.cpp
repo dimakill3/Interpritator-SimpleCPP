@@ -596,7 +596,7 @@ void TDiagram::TPrefEl(TData* data)
 
 		Root->SemDoUnoOperation(data, type);
 	}
-
+	
 	TPostEl(data);
 }
 
