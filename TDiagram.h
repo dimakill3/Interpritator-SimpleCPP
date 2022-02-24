@@ -23,7 +23,7 @@ private:
 	void TOperators();		// Операторы
 	void TOperator(bool inFor = false);		// Оператор
 	void TFuncRet(TData* data);		// Возврат из функции
-	DATA_TYPE TFuncStart();		// Вызов функции
+	void TFuncStart(TData* data);		// Вызов функции
 	void TConstList();		// Список именованных констант
 	void TVariableList();	// Список переменных
 	void TAssignSD(bool);	// Присваивание

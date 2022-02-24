@@ -1,4 +1,8 @@
 #include "Semantic.h"
+
+#include <iomanip>
+#include <iostream>
+
 #include "vector"
 #include <string.h>
 
@@ -17,12 +21,18 @@
 Tree* Tree::cur = (Tree*)NULL;
 
 // Вектор для сопоставления номеров типов из Semantic.h DATA_TYPE с их названиями
-std::vector<std::string> types = { "none", /*"short",*/ "int", /*"long",*/ "long long" };
+std::vector<std::string> types = { "none", "int", "long long" };
+
+// Вектор для сопоставления номеров типов из Semantic.h DATA_TYPE с их названиями
+std::vector<std::string> objTypes = { "none", "var", "func" };
 
 // Поиск элемента id вверх по дереву от текущей вершины from.
 // Поиск осуществляется на одном уровне вложенности по левым связям
 Tree* Tree::FindUpOneLevel(Tree* from, TypeLex id)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	Tree* i = from; // текущая вершина поиска
 	while ((i->up != NULL) &&
 		(i->up->r != i)
@@ -53,26 +63,55 @@ Tree::Tree(Tree* l, Tree* r, Tree* up, Node* d)
 
 void Tree::SetScaner(TScaner* sc)
 {
+	if (!isInterpret)
+		return;
 	this->sc = sc;
 }
 
 // Создание левого потомка от текущей вершины this
 void Tree::SetLeft(Node* data)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* a = new Tree(NULL, NULL, this, data); // новая вершина
+	l = a; // связываем this с новой вершиной слева
+}
+
+void Tree::SetLeft(Tree* data)
+{
+	if (!isInterpret)
+		return;
+
+	Tree* a = new Tree(data->l, data->r, this, data->n); // новая вершина
 	l = a; // связываем this с новой вершиной слева
 }
 
 // Создание правого потомка от текущей вершины this
 void Tree::SetRight(Node* data)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* a = new Tree(NULL, NULL, this, data); // новая вершина
+	r = a; // связываем this с новой вершиной справа
+}
+
+void Tree::SetRight(Tree* data)
+{
+	if (!isInterpret)
+		return;
+
+	Tree* a = new Tree(data->l, data->r, this, data->n); // новая вершина
 	r = a; // связываем this с новой вершиной справа
 }
 
 // Поиск данных в дереве от заданной вершины from до корня вверх по связям
 Tree* Tree::FindUp(Tree* from, TypeLex id)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	Tree* i = from; // текущая вершина поиска
 	while ((i != NULL) && (memcmp(id, i->n->id, max(strlen(i->n->id), strlen(id))) != 0))
 		i = i->up; // поднимаемся вверх по связям
@@ -83,24 +122,35 @@ Tree* Tree::FindUp(Tree* from, TypeLex id)
 // Поиск данных в дереве, начиная от текущей вершины this до корня вверх по связям
 Tree* Tree::FindUp(TypeLex id)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	return FindUp(this, id);
 }
 
 // Установить текущий узел дерева
 void Tree::SetCur(Tree* a)
 {
+	if (!isInterpret)
+		return;
 	cur = a;
 }
 
 // Получить значение текущего узла дерева
 Tree* Tree::GetCur()
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	return cur;
 }
 
 // Занесение идентификатора a в таблицу с типом t
 Tree* Tree::SemInclude(TypeLex a, OBJECT_TYPE objType, DATA_TYPE dataType)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	if (DupControl(cur, a))
 		PrintError("Повторное описание идентификатора", a);
 
@@ -109,7 +159,7 @@ Tree* Tree::SemInclude(TypeLex a, OBJECT_TYPE objType, DATA_TYPE dataType)
 
 	if (objType != TYPE_FUNC)
 	{
-		memcpy(b.id, a, strlen(a) + 1); b.objType = objType; b.dataType = dataType; /*b.var.data = NULL;*/ b.var.constFlag = false; b.var.init = false;
+		memcpy(b.id, a, strlen(a) + 1); b.objType = objType; b.dataType = dataType; b.var.constFlag = false; b.var.init = false;
 		cur->SetLeft(&b); // сделали вершину - переменную
 		cur = cur->l;
 		return cur;
@@ -133,6 +183,9 @@ Tree* Tree::SemInclude(TypeLex a, OBJECT_TYPE objType, DATA_TYPE dataType)
 // Найти в таблице переменную с именем a и вернуть ссылку на соответствующий элемент дерева
 Tree* Tree::SemGetVar(TypeLex a)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	Tree* v = FindUp(cur, a);
 	if (v == NULL)
 		PrintError("Отсутствует описание", a);
@@ -144,6 +197,9 @@ Tree* Tree::SemGetVar(TypeLex a)
 // Найти в таблице функцию с именем a и вернуть ссылку на соответствующий элемент дерева
 Tree* Tree::SemGetFunc(TypeLex a)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	Tree* v = FindUp(cur, a);
 	if (v == NULL)
 		PrintError("Отсутствует описание функции", a);
@@ -154,6 +210,9 @@ Tree* Tree::SemGetFunc(TypeLex a)
 
 DATA_TYPE Tree::SemGetFirstFunc()
 {
+	if (!isInterpret)
+		return (DATA_TYPE)NULL;
+	
 	Tree* i = cur; // текущая вершина поиска
 	while ((i != NULL) && i->n->objType != TYPE_FUNC)
 		i = i->up; // поднимаемся вверх по связям
@@ -164,6 +223,9 @@ DATA_TYPE Tree::SemGetFirstFunc()
 // Проверить возможность применения постфиксного оператора
 void Tree::SemCheckFuncOrConst(TypeLex a)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* v = FindUp(cur, a);
 
 	if (v == NULL)
@@ -179,17 +241,26 @@ void Tree::SemCheckFuncOrConst(TypeLex a)
 // Установить флаг константы
 void Tree::SemSetConst(Tree *addr, bool flag)
 {
+	if (!isInterpret)
+		return;
+	
 	addr->n->var.constFlag = flag;
 }
 
 // Установить флаг инициализации
 void Tree::SemSetInit(Tree* addr, bool flag)
 {
+	if (!isInterpret)
+		return;
+	
 	addr->n->var.init = flag;
 }
 
 void Tree::SemSetValue(Tree* addr, DATA_TYPE dataType, TypeLex val)
 {
+	if (!isInterpret)
+		return;
+	
 	if (dataType == TYPE_INTEGER)
 		addr->n->dataValue.intValue = atoll(val);
 	
@@ -199,11 +270,17 @@ void Tree::SemSetValue(Tree* addr, DATA_TYPE dataType, TypeLex val)
 
 void Tree::SemSetValue(Tree* addr, DataValue val)
 {
+	if (!isInterpret)
+		return;
+	
 	addr->n->dataValue = val;
 }
 
 void Tree::SemSetValue(Tree* addr, TData* val)
 {
+	if (!isInterpret)
+		return;
+	
 	switch (val->dataType)
 	{
 	case TYPE_INTEGER:
@@ -248,12 +325,56 @@ void Tree::SemSetValue(Tree* addr, TData* val)
 
 void Tree::SemGetData(Tree* addr, TData* data)
 {
+	if (!isInterpret)
+		return;
+	
 	data->dataType = addr->n->dataType;
 	data->dataValue = addr->n->dataValue;
 }
 
+void Tree::SemInvertValue(TData* data)
+{
+	if (!isInterpret)
+		return;
+	
+	switch (data->dataType)
+	{
+	case TYPE_INTEGER:
+		{
+			data->dataValue.intValue = -data->dataValue.intValue;
+			break;
+		}
+	case TYPE_LONG_LONG:
+		{
+			data->dataValue.llValue = -data->dataValue.llValue;
+			break;
+		}
+	}
+}
+
+void Tree::SemSetFuncBodyPos(Tree* addr, int pos)
+{
+	if (!isInterpret)
+		return;
+	
+	addr->n->func.bodyPos = pos;
+}
+
+int Tree::SemGetFuncBodyPos(TypeLex func)
+{
+	if (!isInterpret)
+		return NULL;
+	
+	Tree* f = SemGetFunc(func);
+
+	return f->n->func.bodyPos;
+}
+
 void Tree::SemReadStringValue(TypeLex val, TData* data)
 {
+	if (!isInterpret)
+		return;
+	
 	long long value = atoll(val);
 	if (isInt(value))
 	{
@@ -269,15 +390,56 @@ void Tree::SemReadStringValue(TypeLex val, TData* data)
 
 void Tree::SemDoBiOperation(TData* val1, TData* val2, int type)
 {
+	if (!isInterpret)
+		return;
+	
 	DATA_TYPE maxType = max(val1->dataType, val2->dataType);
-
-	std::string value1 = val1->GetValue(), value2 = val2->GetValue();
-
-	val1->dataType = maxType;
 	
 	DataValue realValue1, realValue2;
+
+	if (maxType == val1->dataType)
+	{
+		realValue1 = val1->dataValue;
+	}
+	else
+	{
+		switch (val1->dataType)
+		{
+		case TYPE_INTEGER:
+		{
+			realValue1.llValue = val1->dataValue.intValue;
+			break;
+		}
+		case TYPE_LONG_LONG:
+		{
+			realValue1.llValue = val1->dataValue.llValue;
+			break;
+		}
+		}
+	}
 	
-	switch (maxType)
+	if (maxType == val2->dataType)
+	{
+		realValue2 = val2->dataValue;
+	}
+	else
+	{
+		switch (val2->dataType)
+		{
+		case TYPE_INTEGER:
+		{
+			realValue2.llValue = val2->dataValue.intValue;
+			break;
+		}
+		case TYPE_LONG_LONG:
+		{
+			realValue2.llValue = val2->dataValue.llValue;
+			break;
+		}
+		}
+	}
+	
+	/*switch (maxType)
 	{
 	case TYPE_INTEGER:
 		{
@@ -292,7 +454,7 @@ void Tree::SemDoBiOperation(TData* val1, TData* val2, int type)
 			break;
 		}
 	default: break;
-	}
+	}*/
 	
 	switch (type)
 	{
@@ -572,26 +734,17 @@ void Tree::SemDoBiOperation(TData* val1, TData* val2, int type)
 	}
 }
 
-void Tree::SemDoUnoOperation(TData* val, int type)
+void Tree::SemDoUnoOperation(TData* val, TypeLex ident, int type)
 {
+	if (!isInterpret)
+		return;
+	
+	Tree* TreeIdent = SemGetVar(ident);
+	
 	switch (type)
 	{
 	case TAdd:
 		{
-			//switch (val->dataType)
-			//{
-			//case TYPE_INTEGER:
-			//	{
-			//		val->dataValue.intValue = val->dataValue.intValue;
-			//		break;
-			//	}
-			//case TYPE_LONG_LONG:
-			//	{
-			//		val->dataValue.llValue = val->dataValue.llValue;
-			//		break;
-			//	}
-			//default: break;
-			//}
 			break;
 		}
 	case TSub:
@@ -600,49 +753,37 @@ void Tree::SemDoUnoOperation(TData* val, int type)
 			{
 			case TYPE_INTEGER:
 				{
-					val->dataValue.intValue = -val->dataValue.intValue;
-					break;
+					switch (TreeIdent->n->dataType)
+					{
+					case TYPE_INTEGER:
+						{
+							val->dataValue.intValue = -TreeIdent->n->dataValue.intValue;
+							break;
+							return;
+						}
+					case  TYPE_LONG_LONG:
+						{
+							val->dataValue.intValue = -TreeIdent->n->dataValue.llValue;
+							break;
+							return;
+						}
+					}
 				}
 			case TYPE_LONG_LONG:
 				{
-					val->dataValue.llValue = -val->dataValue.llValue;
-					break;
-				}
-			default: break;
-			}
-		break;
-		}
-	case TInc:
-		{
-			switch (val->dataType)
-			{
-			case TYPE_INTEGER:
+				switch (TreeIdent->n->dataType)
 				{
-					val->dataValue.intValue++;
-					break;
+				case TYPE_INTEGER:
+					{
+						val->dataValue.llValue = -TreeIdent->n->dataValue.intValue;
+						break;
+					}
+				case  TYPE_LONG_LONG:
+					{
+						val->dataValue.llValue = -TreeIdent->n->dataValue.llValue;
+						break;
+					}
 				}
-			case TYPE_LONG_LONG:
-				{
-					val->dataValue.llValue++;
-					break;
-				}
-			default: break;
-			}
-		break;
-		}
-	case TDec:
-		{
-			switch (val->dataType)
-			{
-			case TYPE_INTEGER:
-				{
-					val->dataValue.intValue--;
-					break;
-				}
-			case TYPE_LONG_LONG:
-				{
-					val->dataValue.llValue--;
-					break;
 				}
 			default: break;
 			}
@@ -651,10 +792,61 @@ void Tree::SemDoUnoOperation(TData* val, int type)
 	}
 }
 
+void Tree::SemPostPrefIdent(TypeLex ident, int type)
+{
+	if (!isInterpret)
+		return;
+	
+	Tree* TreeIdent = SemGetVar(ident);
+
+	switch (type)
+	{
+	case TInc:
+	{
+		switch (TreeIdent->n->dataType)
+		{
+		case TYPE_INTEGER:
+			{
+				TreeIdent->n->dataValue.intValue++;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				TreeIdent->n->dataValue.llValue++;
+				break;
+			}
+		default:break;
+		}
+		break;
+	}
+	case TDec:
+	{
+		switch (TreeIdent->n->dataType)
+		{
+		case TYPE_INTEGER:
+			{
+				TreeIdent->n->dataValue.intValue--;
+				break;
+			}
+		case TYPE_LONG_LONG:
+			{
+				TreeIdent->n->dataValue.llValue--;
+				break;
+			}
+		default:break;
+		}
+		break;
+	}
+	}
+}
+
 // Проверка идентификатора а на повторное описание внутри блока.
 // Поиск осуществляется вверх от вершины addr.
 int Tree::DupControl(Tree* addr, TypeLex a)
 {
+	if (!isInterpret)
+		return 0;
+	
 	if (FindUpOneLevel(addr, a) == NULL) return 0;
 	return 1;
 }
@@ -662,20 +854,20 @@ int Tree::DupControl(Tree* addr, TypeLex a)
 // Проверить флаг константы
 void Tree::CheckConst(TypeLex a)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* v = SemGetVar(a);
 	if (v->n->var.constFlag)
 		PrintError("Невозможно изменить константу", a);
 }
 
-// Проверить данные
-void Tree::CheckData(Tree* addr)
-{
-	
-}
-
 // Проверить инициализацию
 void Tree::CheckInit(TypeLex a)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* v = SemGetVar(a);
 	if (v->n->var.init == false)
 		PrintError("Использована неинициализированная переменная", a);
@@ -684,13 +876,19 @@ void Tree::CheckInit(TypeLex a)
 // Вывод ошибки
 void Tree::PrintError(std::string error, TypeLex a)
 {
-	printf("Semantic error (строка %d): %s, идентификатор %s", sc->GetLine() + 1, error.c_str(), a);
+	if (!isInterpret)
+		return;
+	
+	printf("\n!!!Semantic error (строка %d): %s, идентификатор %s\n", sc->GetLine() + 1, error.c_str(), a);
 	exit(-2);
 }
 
 // Получить тип
 DATA_TYPE Tree::GetType(TypeLex l)
 {
+	if (!isInterpret)
+		return (DATA_TYPE)NULL;
+	
 	Tree* v = FindUp(cur, l);
 	if (v != NULL)
 		return v->n->dataType;
@@ -719,13 +917,16 @@ DATA_TYPE Tree::GetType(TypeLex l)
 // Проверить возможность приведения типов
 void Tree::SemTypeCastCheck(TypeLex a, TypeLex l)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* v = SemGetVar(a);
 
 	DATA_TYPE constDataType = GetType(l);
 	
 	if (v->n->dataType < constDataType)
 	{
-		printf("Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s", sc->GetLine() + 1,
+		printf("\n***Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s\n", sc->GetLine() + 1,
 			types[constDataType].c_str(), types[v->n->dataType].c_str(), a);
 	}
 	
@@ -734,11 +935,14 @@ void Tree::SemTypeCastCheck(TypeLex a, TypeLex l)
 // Проверить возможность приведения типов
 void Tree::SemTypeCastCheck(TypeLex a, DATA_TYPE dt)
 {
+	if (!isInterpret)
+		return;
+	
 	Tree* v = SemGetVar(a);
 
 	if (v->n->dataType < dt)
 	{
-		printf("Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s", sc->GetLine() + 1,
+		printf("\n***Semantic warning (строка %d): Неявное приведение типов тип %s к %s, идентификатор %s\n", sc->GetLine() + 1,
 			types[dt].c_str(), types[v->n->dataType].c_str(), a);
 	}
 }
@@ -746,9 +950,12 @@ void Tree::SemTypeCastCheck(TypeLex a, DATA_TYPE dt)
 // Проверить возможность приведения типов
 void Tree::SemTypeCastCheck(DATA_TYPE dt1, DATA_TYPE dt2)
 {
+	if (!isInterpret)
+		return;
+	
 	if (dt1 < dt2)
 	{
-		printf("Semantic warning (строка %d): Неявное приведение типов тип %s, ожидался тип %s", sc->GetLine() + 1,
+		printf("\n***Semantic warning (строка %d): Неявное приведение типов тип %s, ожидался тип %s\n", sc->GetLine() + 1,
 			types[dt2].c_str(), types[dt1].c_str());
 	}
 }
@@ -756,47 +963,72 @@ void Tree::SemTypeCastCheck(DATA_TYPE dt1, DATA_TYPE dt2)
 // Вывод дерева
 void Tree::Print()
 {
-	std::string nType, lType, rType;	// Типы данных для узлов
-	std::string nVal, lVal, rVal;		// Значения для узлов
-	
+	if (!isInterpret)
+		return;
+
+	std::string nObjType;	// Типы объектов для узлов
+	std::string nType;	// Типы данных для узлов
+	std::string nVal;		// Значения для узлов
+
+	nObjType = objTypes[n->objType];
 	nType = types[n->dataType];
 	nVal = n->dataType == TYPE_INTEGER ? std::to_string(n->dataValue.intValue) : n->dataType == TYPE_LONG_LONG ? std::to_string(n->dataValue.llValue) : "none";
 
+	std::cout << std::setw(15) << n->id
+		<< std::setw(15) << std::left << nObjType.c_str()
+		<< std::setw(15) << std::left << nType.c_str()
+		<< std::setw(30) << std::left << nVal.c_str();
 	
-	printf("Вершина с данными %s <type %s> <value %s> ----->", n->id, nType.c_str(), nVal.c_str());
+	std::cout << std::setw(15) << std::left;
+	// printf("Вершина с данными %s <type %s> <value %s> ----->", n->id, nType.c_str(), nVal.c_str());
 	if (l != NULL)
 	{
-		lType = types[l->n->dataType];
-
-		lVal = l->n->dataType == TYPE_INTEGER ? std::to_string(l->n->dataValue.intValue) : l->n->dataType == TYPE_LONG_LONG ? std::to_string(l->n->dataValue.llValue) : "none";
-		
-		printf(" слева данные %s <type %s> <value %s>", l->n->id, lType.c_str(), lVal.c_str());
+		std::cout << l->n->id;
 	}
+	else
+	{
+		std::cout << "-";
+	}
+	std::cout << std::setw(15) << std::left;
 	if (r != NULL)
 	{
-		rType = types[r->n->dataType];
-
-		rVal = r->n->dataType == TYPE_INTEGER ? std::to_string(r->n->dataValue.intValue) : r->n->dataType == TYPE_LONG_LONG ? std::to_string(r->n->dataValue.llValue) : "none";
-		
-		printf(" справа данные %s <type %s> <value %s>", r->n->id, rType.c_str(), rVal.c_str());
+		std::cout << r->n->id;
 	}
+	else
+	{
+		std::cout << "-";
+	}
+	
 	printf("\n");
 	if (r != NULL) r->Print();
 	if (l != NULL) l->Print();
 }
 
+// Вывод дерево с подписью
 void Tree::PrintWithTag(std::string tag)
 {
+	if (!isInterpret)
+		return;
+	
 	printf("\n==========================================================\n");
 	printf("%s\n", tag.c_str());
 	printf("==========================================================\n");
-	
+	std::cout << std::setw(15) << std::left << "Вершина"
+		<< std::setw(15) << std::left << "Тип объекта"
+		<< std::setw(15) << std::left << "Тип данных"
+		<< std::setw(30) << std::left << "Значение"
+		<< std::setw(15) << std::left << "Слева"
+		<< std::setw(15) << std::left << "Справа" << std::endl;
+	printf("--------------------------------------------------------------------------------------------------------------\n");
 	Print();
 }
 
 // Добавление в семантическое дерево составного оператора (пустой узел слева, от него пустой узел справа)
 Tree* Tree::CoplexOperator()
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	Tree* v;
 	Node b;
 
@@ -817,8 +1049,12 @@ Tree* Tree::CoplexOperator()
 	return v;
 }
 
+// Удалить поддерево
 void Tree::DelSubTree(Tree* addr)
 {
+	if (!isInterpret)
+		return;
+	
 	if (addr->r != NULL)
 		DelSubTree(addr->r);
 
@@ -828,15 +1064,52 @@ void Tree::DelSubTree(Tree* addr)
 	delete addr;
 }
 
-void Tree::DelSubTreeForFunc(Tree* addr)
+// Дейсвтия при запуске функции
+Tree* Tree::SemStartFunction(TypeLex func)
 {
-	DelSubTree(addr->r);
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
+	Tree* funcNode = SemGetFunc(func);
 
-	addr->r = NULL;
+	Tree* treeCopy = new Tree(nullptr, nullptr, nullptr, funcNode->n);
+	
+	treeCopy->up = funcNode;
+	
+	treeCopy->r = new Tree(nullptr, nullptr, nullptr, funcNode->r->n);
+	treeCopy->r->up = treeCopy;
+	
+	treeCopy->l = funcNode->l;
+	treeCopy->l->up = treeCopy;
+	
+	funcNode->l = treeCopy;
+
+	SetCur(treeCopy->r);
+
+	return treeCopy;
 }
 
+// Удалить поддерево (функция)
+void Tree::DelSubTreeForFunc(Tree* addr)
+{
+	if (!isInterpret)
+		return;
+	
+	DelSubTree(addr->r);
+
+	Tree* up = addr->up;
+	
+	addr->up->l = addr->l;
+	addr->l->up = addr->up;
+	
+	delete addr;
+}
+// Удалить поддерево (блок)
 Tree* Tree::DelSubTreeForBlock(Tree* addr)
 {
+	if (!isInterpret)
+		return (Tree*)NULL;
+	
 	DelSubTree(addr->r);
 
 	Tree* ret = addr->up;

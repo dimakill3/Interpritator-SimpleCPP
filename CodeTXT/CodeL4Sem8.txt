@@ -1,0 +1,25 @@
+int main()
+{
+int a = 1000;
+a = -a;
+long long la = a / a;
+la = a * la * a * a * a;
+long long lb = a * a * a * a * a * a * a * a;
+long long lc = la * 300;
+
+long long k = 10;
+int j = 20;
+long long u = 30;
+
+int h;
+
+h = (k * j + j * j) * u - (2 * k - j);
+
+int f = 8 < 3;
+
+int i = 1;
+int g = ++i;
+long long l = i++;
+
+return 1;
+}

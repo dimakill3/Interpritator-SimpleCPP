@@ -6,11 +6,6 @@
 
 int main(int argc, char* argv[])
 {
-	int a = 5;
-
-	int b = a++ + 3;
-
-	
 	setlocale(LC_ALL, "Russian");
 	
 	TScaner* sc;
@@ -30,6 +25,7 @@ int main(int argc, char* argv[])
 	// Создаём запись корня в семантическом дереве
 	Node n;
 	memcpy(n.id, &"<root>", 7);
+	n.objType = OBJ_NONE;
 	n.dataType = TYPE_NONE;
 	
 	// Создаём корневой узел семантического дерева и делаем его текущим
@@ -46,12 +42,12 @@ int main(int argc, char* argv[])
 	int type; TypeLex l;
 	type = sc->Scaner(l);
 	if (type == TEnd) 
-		printf("Синтаксических и семантических ошибок не обнаружено. \n");
+		printf("\nСинтаксических и семантических ошибок не обнаружено. \n");
 	else 
-		sc->PrintError(const_cast<char*>("Syntax"), const_cast<char*>("Лишний текст в конце программы."), const_cast<char*>(""), -1, -1);
+		sc->PrintError(const_cast<char*>("Syntax"), const_cast<char*>("\nЛишний текст в конце программы.\n"), const_cast<char*>(""), -1, -1);
 
 	// Выводим семантическое дерево
-	myRoot->Print();
+	myRoot->PrintWithTag("Вывод дерева после выполнения программы: ");
 	
 	return 0;
 }
