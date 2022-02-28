@@ -19,10 +19,10 @@ private:
 	void TConstData();		// Именованные константы
 	void TVariableData();	// Переменные
 	DATA_TYPE TType();		// Тип
-	void TFuncBody(TData* data);		// Тело функции
+	void TFuncBody();		// Тело функции
 	void TOperators();		// Операторы
 	void TOperator(bool inFor = false);		// Оператор
-	void TFuncRet(TData* data);		// Возврат из функции
+	void TFuncRet();		// Возврат из функции
 	void TFuncStart(TData* data);		// Вызов функции
 	void TConstList();		// Список именованных констант
 	void TVariableList();	// Список переменных

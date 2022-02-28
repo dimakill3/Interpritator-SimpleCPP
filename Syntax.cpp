@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	
 	// ввести файл с исходным модулем:
 	if (argc <= 1) 
-		sc = new TScaner(const_cast<char*>("CodeTXT/test.txt"));// файл по умолчанию
+		sc = new TScaner(const_cast<char*>("CodeTXT/re-Ivankov.txt"));// файл по умолчанию
 	else 
 		sc = new TScaner(argv[1]); // задан файл
 	

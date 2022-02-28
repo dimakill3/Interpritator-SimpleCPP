@@ -208,17 +208,26 @@ Tree* Tree::SemGetFunc(TypeLex a)
 	return v;
 }
 
-DATA_TYPE Tree::SemGetFirstFunc()
+Tree* Tree::SemGetFirstFunc()
 {
 	if (!isInterpret)
-		return (DATA_TYPE)NULL;
+		return (Tree*)NULL;
 	
 	Tree* i = cur; // текуща€ вершина поиска
 	while ((i != NULL) && i->n->objType != TYPE_FUNC)
 		i = i->up; // поднимаемс€ вверх по св€з€м
 
-	return i->n->dataType;
+	return i;
 }
+
+DATA_TYPE Tree::SemGetDataType(Tree* addr)
+{
+	if (!isInterpret)
+		return (DATA_TYPE)NULL;
+
+	return addr->n->dataType;
+}
+
 
 // ѕроверить возможность применени€ постфиксного оператора
 void Tree::SemCheckFuncOrConst(TypeLex a)

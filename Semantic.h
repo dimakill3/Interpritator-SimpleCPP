@@ -147,7 +147,8 @@ public:
 	Tree* SemInclude(TypeLex a, OBJECT_TYPE objType, DATA_TYPE dataType);	// Добавить объект в дерево
 	Tree* SemGetVar(TypeLex a);		// Найти и вернуть переменную с именем a
 	Tree* SemGetFunc(TypeLex a);	// Найти и вернуть функцию с именем a
-	DATA_TYPE SemGetFirstFunc();	// Найти и вернуть первую попавшуюся функцию
+	Tree* SemGetFirstFunc();	// Найти и вернуть первую попавшуюся функцию
+	DATA_TYPE SemGetDataType(Tree* addr);	// Получить тип узла
 	int DupControl(Tree* addr, TypeLex a);	// Проверка на повторение
 
 	void CheckConst(TypeLex a);		// Проверка на константу

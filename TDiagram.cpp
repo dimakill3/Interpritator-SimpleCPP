@@ -9,7 +9,7 @@
 // Проверка, является ли лексема константой
 #define isConst(type) ((type == TConsInt) || (type == TConsHex))
 // Проверка, является ли лексема оператором
-#define isOperator(type) ((type == TFor) || (type == TLeftFB) || (type == TEndComma) || (type == TIdent))
+#define isOperator(type) ((type == TFor) || (type == TLeftFB) || (type == TEndComma) || (type == TIdent) || (type == TRet))
 // Проверка, является ли лексема выражением
 #define isExpr(type) ((type == TLeftRB) || (type == TAdd) || (type == TSub) || (type == TInc) || (type == TDec))
 
@@ -130,7 +130,7 @@ void TDiagram::TFunc()
 		if (funcType == TIdent)
 			Root->isInterpret = false;
 		
-		TFuncBody(new TData());
+		TFuncBody();
 
 		Root->isInterpret = localInterpret;
 	}
@@ -193,9 +193,11 @@ void TDiagram::TVariableData()
 	TVariableList();
 }
 
-void TDiagram::TFuncBody(TData* data)
+void TDiagram::TFuncBody()
 {
 	int type;
+	bool isRetInFuncBody = false;
+	bool localInterpret = Root->isInterpret;
 
 	type = sc->Scaner(lex);
 	if (type != TLeftFB)
@@ -203,8 +205,22 @@ void TDiagram::TFuncBody(TData* data)
 
 	type = lookForvard(1);
 	
-	while (type != TRet)
-	{	
+	//while (type != TRet)
+	//{	
+	//	if (isOperator(type) || isConst(type) || isExpr(type))
+	//		TOperators();
+	//	else if ((type == TKeyConst))
+	//		TConstData();
+	//	else if (isType(type))
+	//		TVariableData();
+	//	else
+	//		sc->PrintError(syntaxError, const_cast<char*>("Ожидался выход из функции"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
+
+	//	type = lookForvard(1);
+	//}
+
+	while (type != TRightFB)
+	{
 		if (isOperator(type) || isConst(type) || isExpr(type))
 			TOperators();
 		else if ((type == TKeyConst))
@@ -212,19 +228,26 @@ void TDiagram::TFuncBody(TData* data)
 		else if (isType(type))
 			TVariableData();
 		else
-			sc->PrintError(syntaxError, const_cast<char*>("Ожидался выход из функции"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
+			sc->PrintError(syntaxError, const_cast<char*>("Ожидался символ }"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
 		type = lookForvard(1);
 	}
-
-	TFuncRet(data);
 	
-	type = sc->Scaner(lex);
+	if (localInterpret != false && localInterpret == Root->isInterpret)
+		sc->PrintError(syntaxError, const_cast <char*>("Функция должна возвращать значение"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
+
+	sc->Scaner(lex);
+
+	Root->isInterpret = localInterpret;
+	// TFuncRet(data);
+	
+	/*type = sc->Scaner(lex);
 	if (type != TRightFB)
-		sc->PrintError(syntaxError, const_cast < char*>("Ожидался символ }"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
+		sc->PrintError(syntaxError, const_cast < char*>("Ожидался символ }"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());*/
+
 }
 
-void TDiagram::TFuncRet(TData* data)
+void TDiagram::TFuncRet()
 {
 	int type;
 
@@ -232,13 +255,18 @@ void TDiagram::TFuncRet(TData* data)
 	if (type != TRet)
 		sc->PrintError(syntaxError, const_cast < char*>("Ожидалось ключевое слово return"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
-	TExpr(data);
+	TData* retExpt = new TData();
+	TExpr(retExpt);
 	
-	Root->SemTypeCastCheck(Root->SemGetFirstFunc(), data->dataType);
+	Root->SemTypeCastCheck(Root->SemGetDataType(Root->SemGetFirstFunc()), retExpt->dataType);
+
+	Root->SemSetValue(Root->SemGetFirstFunc(), retExpt);
 	
 	type = sc->Scaner(lex);
 	if (type != TEndComma)
 		sc->PrintError(syntaxError, const_cast < char*>("Ожидался символ ;"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
+
+	Root->isInterpret = false;
 }
 
 void TDiagram::TFuncStart(TData* data)
@@ -273,9 +301,10 @@ void TDiagram::TFuncStart(TData* data)
 		Tree* forDelete = Root->SemStartFunction(lastIdentInExpr);
 
 		// TData* funcBody = new TData();
-		TFuncBody(data);
+		TFuncBody();
 		
 		Root->PrintWithTag("Вывод дерева перед освобождением памяти после вызова функции: ");
+		Root->SemGetData(Root->SemGetFirstFunc(), data);
 		Root->DelSubTreeForFunc(forDelete);
 		Root->PrintWithTag("Вывод дерева после освобождения памяти после вызова функции: ");
 		
@@ -402,7 +431,7 @@ void TDiagram::TOperator(bool inFor)
 	else if (type == TIdent)
 	{
 		type = lookForvard(2);
-		
+
 		if (type == TAssign)
 			TAssignSD(true);
 		else
@@ -421,7 +450,7 @@ void TDiagram::TOperator(bool inFor)
 	{
 		TData* data = new TData();
 		TExpr(data);
-		
+
 		type = sc->Scaner(lex);
 		if (type != TEndComma)
 			sc->PrintError(syntaxError, const_cast<char*>("Ожидался символ ;"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
@@ -435,7 +464,7 @@ void TDiagram::TOperator(bool inFor)
 			Root->PrintWithTag("Вывод дерева перед началом блока: ");
 			l = Root->CoplexOperator();
 		}
-		
+
 		type = sc->Scaner(lex);
 		do
 		{
@@ -457,7 +486,7 @@ void TDiagram::TOperator(bool inFor)
 				sc->PrintError(syntaxError, const_cast<char*>("Ожидался оператор или описание данных"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
 			type = lookForvard(1);
-			
+
 		} while (type != TRightFB);
 
 		if (!inFor)
@@ -469,6 +498,8 @@ void TDiagram::TOperator(bool inFor)
 		}
 		sc->Scaner(lex);
 	}
+	else if (type == TRet)
+		TFuncRet();
 	else
 		sc->PrintError(syntaxError, const_cast<char*>("Ожидался оператор"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
@@ -540,8 +571,12 @@ V3:
 		sc->PrintError(syntaxError, const_cast<char*>("Ожидался символ )"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 OPER:
 	int UK_Oper = sc->GetPos();
-	
+	bool preOperInterpret = Root->isInterpret;
 	TOperator(true);
+
+	if (preOperInterpret != Root->isInterpret)
+		localInterpret = false;
+	
 	inCycle = true;
 	if (Root->isInterpret)
 	{
