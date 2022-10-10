@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Semantic.cpp" />
     <ClCompile Include="Syntax.cpp" />
     <ClCompile Include="TDiagram.cpp" />

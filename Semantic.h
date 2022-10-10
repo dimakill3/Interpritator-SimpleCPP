@@ -11,8 +11,8 @@
 
 // Типы данных
 enum DATA_TYPE {
-	TYPE_NONE = 0, /*TYPE_SHORT,*/ TYPE_INTEGER,
-	/*TYPE_LONG,*/ TYPE_LONG_LONG
+	TYPE_NONE = 0, TYPE_INTEGER,
+	TYPE_LONG_LONG
 };
 
 // Типы объектов
@@ -41,6 +41,7 @@ union DataValue
 	int intValue;
 };
 
+// Класс данных
 class TData
 {
 public:
@@ -51,22 +52,6 @@ public:
 	{
 		dataType = TYPE_INTEGER;
 		dataValue.intValue = -maxInt - 1;
-	}
-
-	std::string GetValue()
-	{
-		switch (dataType)
-		{
-		case TYPE_INTEGER:
-			{
-			return  std::to_string(dataValue.intValue);
-			}
-		case TYPE_LONG_LONG:
-			{
-			return  std::to_string(dataValue.llValue);
-			}
-		default: return "";
-		}
 	}
 
 	long long GetRealValue()
@@ -84,6 +69,20 @@ public:
 		default: return -maxInt - 1;
 		}
 	}
+};
+
+class Operand
+{
+	bool isLink;	// Непосредственный или ссылка
+	int number;		// Номер триады, если является ссылкой (isLink = true)
+	TypeLex lex;	// Лексема непосредственного операнда
+};
+
+class Triada
+{
+	int triadeNum;	// Номер триады
+	int TOper;		// Код операции
+	Operand operands[2];	// Операнды
 };
 
 // Структура данных узла (переменной или функции) в семантическом дереве

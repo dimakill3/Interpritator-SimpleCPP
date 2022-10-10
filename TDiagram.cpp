@@ -295,12 +295,12 @@ void TDiagram::TFuncStart(TData* data)
 	if (Root->isInterpret)
 	{
 		int UK_backToCode = sc->GetPos();
+		int line = sc->GetLine();
 		Tree* ret = Root->GetCur();
 
 		sc->SetPos(Root->SemGetFuncBodyPos(lastIdentInExpr));
 		Tree* forDelete = Root->SemStartFunction(lastIdentInExpr);
 
-		// TData* funcBody = new TData();
 		TFuncBody();
 		
 		Root->PrintWithTag("Вывод дерева перед освобождением памяти после вызова функции: ");
@@ -310,6 +310,7 @@ void TDiagram::TFuncStart(TData* data)
 		
 		Root->SetCur(ret);
 		sc->SetPos(UK_backToCode);
+		sc->SetLine(line);
 	}
 }
 
@@ -534,7 +535,8 @@ void TDiagram::TForSD()
 	if (type != TEndComma)
 		sc->PrintError(syntaxError, const_cast<char*>("Ожидался символ ;"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
 
-	int UK_V2 = sc->GetPos();
+	int UK_V2 = sc->GetPos(); 
+	int line_V2 = sc->GetLine();
 V2:
 	TData* expr = new TData();
 	TExpr(expr);
@@ -554,6 +556,7 @@ V2:
 	Root->isInterpret = false; 
 	
 	int UK_V3 = sc->GetPos();
+	int line_V3 = sc->GetLine();
 V3:
 	TData* post = new TData();
 	TPostEl(post);
@@ -561,6 +564,7 @@ V3:
 	if (inCycle)
 	{
 		sc->SetPos(UK_V2);
+		sc->SetLine(line_V2);
 		goto V2;
 	}
 	
@@ -569,8 +573,8 @@ V3:
 	type = sc->Scaner(lex);
 	if (type != TRightRB)
 		sc->PrintError(syntaxError, const_cast<char*>("Ожидался символ )"), lex, sc->GetLine(), sc->GetPos() - sc->GetPosNewLine());
-OPER:
-	int UK_Oper = sc->GetPos();
+
+	// Блок тела цикла
 	bool preOperInterpret = Root->isInterpret;
 	TOperator(true);
 
@@ -581,6 +585,7 @@ OPER:
 	if (Root->isInterpret)
 	{
 		sc->SetPos(UK_V3);
+		sc->SetLine(line_V3);
 		goto V3;
 	}
 
